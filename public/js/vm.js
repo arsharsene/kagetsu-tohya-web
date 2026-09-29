@@ -122,6 +122,12 @@ class VM {
     const c = p.s[p.i];
     if (c === '%' || c === '$') {
       p.i++;
+      if (p.s[p.i] === '%') {
+        // indirect addressing: $%<numexpr> / %%<numexpr> - the index itself
+        // is the current value of a numeric variable (or expression).
+        const idx = this.numExpr(p);
+        return { t: c === '%' ? 'n' : 's', k: Math.trunc(idx) };
+      }
       const m = /^[A-Za-z_0-9]+/.exec(p.s.slice(p.i));
       if (!m) return { t: c === '%' ? 'n' : 's', k: 0 };
       p.i += m[0].length;

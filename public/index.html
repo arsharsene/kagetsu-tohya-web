@@ -53,28 +53,11 @@
   </div>
 </div>
 <div id="end" class="full" style="display:none"><div class="card"><h1>Fin.</h1><button id="endbtn" class="big">Back to start</button></div></div>
-<div id="err" class="full" style="display:none"><div class="card"><h1>Something went wrong</h1><p id="errmsg" class="small"></p><button class="big" onclick="location.reload()">Reload</button></div></div>
+<div id="err" class="full" style="display:none"><div class="card"><h1>Something went wrong</h1><p id="errmsg" class="small"></p><button id="errReload" class="big">Reload</button></div></div>
 
-<script src="config.js" onerror="KTfail('config.js failed to load (check that the file was deployed).')"></script>
-<script>
-  function KTfail(msg) {
-    var m = document.getElementById('loadmsg');
-    if (m) { m.textContent = msg; m.style.color = '#ff9c8a'; }
-    var st = document.getElementById('startbtn'), se = document.getElementById('startero');
-    if (st) st.disabled = true; if (se) se.style.display = 'none';
-  }
-  window.addEventListener('error', function (e) {
-    KTfail('Script error: ' + (e && e.message ? e.message : 'unknown') + (e && e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''));
-  });
-  window.addEventListener('unhandledrejection', function (e) {
-    KTfail('Unhandled error: ' + (e && e.reason && e.reason.message ? e.reason.message : String(e && e.reason)));
-  });
-  setTimeout(function () {
-    if (!window.KT_VM) KTfail("js/vm.js didn't load - check the deployment's output directory and that /js/vm.js is reachable.");
-    else if (!window.KT) KTfail("js/ui.js didn't finish starting - check the browser console for details.");
-  }, 8000);
-</script>
-<script src="js/vm.js" onerror="KTfail('js/vm.js failed to load (404? check deployment output directory).')"></script>
-<script src="js/ui.js" onerror="KTfail('js/ui.js failed to load (404? check deployment output directory).')"></script>
+<script src="js/boot.js"></script>
+<script src="config.js"></script>
+<script src="js/vm.js"></script>
+<script src="js/ui.js"></script>
 </body>
 </html>
