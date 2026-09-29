@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Kagetsu Tohya</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="amb" width="64" height="48"></canvas>
+<button id="bHandle" class="qb" aria-label="Controls">☰</button>
+<div id="app">
+  <div id="wrap">
+    <div id="stage">
+      <canvas id="scr" width="640" height="480"></canvas>
+      <canvas id="hov" width="640" height="480"></canvas>
+      <div id="shade"></div>
+      <div id="txt"></div>
+    </div>
+  </div>
+  <div id="bar">
+    <button id="bBack" class="qb" style="display:none">↩ Back</button>
+    <button id="bMenu" class="qb">☰ Menu</button>
+    <button id="bLog" class="qb">Log</button>
+    <button id="bAuto" class="qb">Auto</button>
+    <button id="bSkip" class="qb">Skip</button>
+    <button id="bSave" class="qb">Save</button>
+    <button id="bLoad" class="qb">Load</button>
+    <button id="bFull" class="qb">⛶</button>
+    <button id="bSnd" class="qb">🔊</button>
+  </div>
+</div>
+
+<div id="overlay"><div id="ovbox"><div id="ovhead"><span id="ovtitle"></span><button id="ovclose" class="mb sm">✕ Close</button></div><div id="ovbody"></div></div></div>
+
+<div id="start" class="full">
+  <div class="card">
+    <h1>歌月十夜<br><small>Kagetsu Tohya</small></h1>
+    <p class="sub">Web edition of the TYPE-MOON fan disc (English patch v0.5.x)</p>
+    <p class="warn">⚠ This game contains explicit sexual and violent content and is for adults (18+) only.<br>
+    An option to skip the erotic scenes is offered when you first start.</p>
+    <p class="small">This is a fan translation (English patch by Lunacy et al.) of a TYPE-MOON game. Do not charge money for it.</p>
+    <p class="small">Tap / click or press Enter to advance text. Right-click, Esc or the ☰ button opens the menu.<br>Your progress is saved in this browser only.</p>
+    <button id="startbtn" class="big" disabled>I am 18 or older — Start</button>
+    <button id="startero" class="big alt" style="display:none" disabled>I am 18 or older — Start, skip erotic scenes</button>
+    <p id="loadmsg" class="small" style="min-height:1.4em">Loading…</p>
+  </div>
+</div>
+<div id="end" class="full" style="display:none"><div class="card"><h1>Fin.</h1><button id="endbtn" class="big">Back to start</button></div></div>
+<div id="err" class="full" style="display:none"><div class="card"><h1>Something went wrong</h1><p id="errmsg" class="small"></p><button class="big" onclick="location.reload()">Reload</button></div></div>
+
+<script src="config.js" onerror="KTfail('config.js failed to load (check that the file was deployed).')"></script>
+<script>
+  function KTfail(msg) {
+    var m = document.getElementById('loadmsg');
+    if (m) { m.textContent = msg; m.style.color = '#ff9c8a'; }
+    var st = document.getElementById('startbtn'), se = document.getElementById('startero');
+    if (st) st.disabled = true; if (se) se.style.display = 'none';
+  }
+  window.addEventListener('error', function (e) {
+    KTfail('Script error: ' + (e && e.message ? e.message : 'unknown') + (e && e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    KTfail('Unhandled error: ' + (e && e.reason && e.reason.message ? e.reason.message : String(e && e.reason)));
+  });
+  setTimeout(function () {
+    if (!window.KT_VM) KTfail("js/vm.js didn't load - check the deployment's output directory and that /js/vm.js is reachable.");
+    else if (!window.KT) KTfail("js/ui.js didn't finish starting - check the browser console for details.");
+  }, 8000);
+</script>
+<script src="js/vm.js" onerror="KTfail('js/vm.js failed to load (404? check deployment output directory).')"></script>
+<script src="js/ui.js" onerror="KTfail('js/ui.js failed to load (404? check deployment output directory).')"></script>
+</body>
+</html>
