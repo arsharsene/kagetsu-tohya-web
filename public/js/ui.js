@@ -568,12 +568,13 @@ window.addEventListener('beforeunload', flushGlobals);
 async function boot() {
   layout(); updateBar();
   const st = $('#startbtn'), msg = $('#loadmsg');
+  msg.classList.add('busy');
   let text;
   try {
     const res = await fetch(CFG.script);
     if (!res.ok) throw new Error(res.status);
     text = await res.text();
-  } catch (e) { const f = window.KTfail || (t => { msg.textContent = t; msg.style.color = '#ff9c8a'; }); f('Failed to load game script (' + (e && e.message || e) + ').'); return; }
+  } catch (e) { msg.classList.remove('busy'); const f = window.KTfail || (t => { msg.textContent = t; msg.style.color = '#ff9c8a'; }); f('Failed to load game script (' + (e && e.message || e) + ').'); return; }
   const vm = new VM(host, text); vmRef = vm;
   const SEED_VER = 2; vm.globalsVer = SEED_VER;
   let stored = store.get('kt-global');
@@ -595,14 +596,16 @@ async function boot() {
   host.beforeStart = v => { if (presetEro !== null) { v.setNum({ t: 'n', k: v.idx('eroskip') }, presetEro); presetEro = null; } };
   // warm a few images used right away
   ['image/word/type_moon.jpg', 'image/title/kagetsu_title01_en.jpg'].forEach(loadImg);
-  msg.textContent = 'Ready.'; st.disabled = false;
+  msg.classList.remove('busy'); msg.textContent = 'Ready.'; st.disabled = false;
   const se = $('#startero');
   if (needChoice) { se.style.display = ''; se.disabled = false; }
   const go = async (ero) => {
     if (started) return; started = true;
     if (needChoice) presetEro = ero;
     unlockAudio();
-    $('#start').style.display = 'none';
+    const startEl = $('#start');
+    startEl.classList.add('leaving');
+    setTimeout(() => { startEl.style.display = 'none'; }, 460);
     if (document.documentElement.requestFullscreen && matchMedia('(pointer:coarse)').matches) { try { await document.documentElement.requestFullscreen(); } catch (e) {} }
     layout();
     try { await vm.run('define'); } catch (e) { console.error(e); $('#err').style.display = 'flex'; $('#errmsg').textContent = String(e && e.message || e); }
