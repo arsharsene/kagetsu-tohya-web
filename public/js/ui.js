@@ -219,6 +219,11 @@ function runNode(color) {
 }
 let typing = false, skipTyping = false, winErased = false;
 function pageText() { return txt.textContent.replace(/[▼▽]/g, ''); }
+function pageHTML() {
+  const c = txt.cloneNode(true);
+  c.querySelectorAll('.cur').forEach(n => n.remove());
+  return c.innerHTML;
+}
 function userFactor() { return SPEEDS[settings.speed].f; }
 async function type(str, o) {
   removeCursor();
@@ -242,7 +247,7 @@ async function type(str, o) {
 function newline() { const tn = runNode(curRunColor); tn.data += '\n'; }
 function clearPage() {
   const t = pageText().replace(/^\s+|\s+$/g, '');
-  if (t) { log.push(t); if (log.length > 300) log.shift(); }
+  if (t) { log.push(pageHTML()); if (log.length > 300) log.shift(); }
   clearPageNow();
 }
 function clearPageNow() {
@@ -309,6 +314,7 @@ let lastPT = 'mouse';
 wrap.addEventListener('pointerdown', e => { lastPT = e.pointerType; if (mode === 'btn') setHover(hit(toStage(e))); });
 wrap.addEventListener('pointerleave', () => { if (mode === 'btn') setHover(null); });
 wrap.addEventListener('pointerup', e => {
+  if (backlogOpen) { hideBacklog(); return; }
   if (overlayOpen()) return;
   if (e.button === 2) return;
   if (document.body.classList.contains('open')) { document.body.classList.remove('open'); return; }
@@ -318,12 +324,18 @@ wrap.addEventListener('pointerup', e => {
   if (mode === 'click' || typing || transitioning) advance();
 });
 wrap.addEventListener('contextmenu', e => {
-  e.preventDefault(); if (overlayOpen() || lastPT === 'touch') return;
+  e.preventDefault(); if (backlogOpen) { hideBacklog(); return; } if (overlayOpen() || lastPT === 'touch') return;
   if (mode === 'btn') { if (btnResolve) btnResolve(-1); } else openMenu();
 });
-wrap.addEventListener('wheel', e => { if (e.deltaY < 0 && !overlayOpen() && mode !== 'btn') openLog(); else if (e.deltaY > 0 && mode === 'click') advance(); }, { passive: true });
+wrap.addEventListener('wheel', e => {
+  if (backlogOpen) return;
+  if (e.deltaY < 0 && !overlayOpen() && mode !== 'btn') openLog();
+  else if (e.deltaY > 0 && mode === 'click') advance();
+}, { passive: true });
 window.addEventListener('keydown', e => {
   if (e.key === 'Control') { ctrlHeld = true; return; }
+  if (e.repeat) return;
+  if (backlogOpen) { if (e.key === 'Escape' || e.key === 'l' || e.key === 'L') hideBacklog(); return; }
   if (overlayOpen()) { if (e.key === 'Escape') closeOverlay(); return; }
   if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); if (mode === 'click' || typing) advance(); }
   else if (e.key === 'Escape') { if (mode === 'btn') { if (btnResolve) btnResolve(-1); } else openMenu(); }
@@ -428,16 +440,30 @@ function slotUI(kind) {
   ovBody.appendChild(list);
   return p;
 }
-function lookback() {
-  const p = openOverlay('Text history', true);
-  const box = document.createElement('div'); box.className = 'logbox';
-  const pages = log.slice(-120).concat(pageText().trim() ? [pageText().trim()] : []);
-  if (!pages.length) box.textContent = '(nothing yet)';
-  pages.forEach(t => { const d = document.createElement('div'); d.className = 'logp'; d.textContent = t; box.appendChild(d); });
-  ovBody.appendChild(box); box.scrollTop = box.scrollHeight;
-  return p;
+const backlogEl = $('#backlog'), backlogList = $('#backlogList');
+let backlogOpen = false, backlogResolve = null;
+function renderBacklog() {
+  backlogList.innerHTML = '';
+  const pages = log.slice(-120).concat(pageText().trim() ? [pageHTML()] : []);
+  if (!pages.length) { backlogList.textContent = '(nothing yet)'; return; }
+  pages.forEach(t => { const d = document.createElement('div'); d.className = 'logp'; d.innerHTML = t; backlogList.appendChild(d); });
 }
-function openLog() { if (!ovOpen && vmRef) lookback(); }
+function showBacklog() {
+  if (backlogOpen) return Promise.resolve();
+  renderBacklog();
+  backlogEl.classList.add('open');
+  backlogOpen = true;
+  backlogEl.scrollTop = backlogEl.scrollHeight;
+  return new Promise(res => { backlogResolve = res; });
+}
+function hideBacklog() {
+  if (!backlogOpen) return;
+  backlogEl.classList.remove('open');
+  backlogOpen = false;
+  if (backlogResolve) { const r = backlogResolve; backlogResolve = null; r(); }
+}
+function lookback() { return showBacklog(); }
+function openLog() { if (!ovOpen && vmRef && mode !== 'btn') { if (backlogOpen) hideBacklog(); else showBacklog(); } }
 function windowErase() {
   winErased = true; txt.style.visibility = 'hidden'; shade.style.display = 'none';
   return race(new Promise(res => { const h = () => { winErased = false; txt.style.visibility = 'visible'; showShade(pageChars > 0); res(); }; clickResolve = h; }));
@@ -504,7 +530,7 @@ bMenu.addEventListener('click', () => { if (ovOpen) return closeOverlay(); openM
 bBack.addEventListener('click', () => { if (!ovOpen && mode === 'btn' && btnResolve) btnResolve(-1); });
 bHandle.addEventListener('click', () => document.body.classList.toggle('open'));
 bar.addEventListener('click', e => { const b = e.target.closest('button'); if (b && document.body.classList.contains('float') && !['bAuto', 'bSkip', 'bSnd'].includes(b.id)) document.body.classList.remove('open'); });
-bLog.addEventListener('click', () => { if (!ovOpen && mode !== 'btn') openLog(); });
+bLog.addEventListener('click', () => { if (backlogOpen) hideBacklog(); else if (!ovOpen && mode !== 'btn') openLog(); });
 bAuto.addEventListener('click', toggleAuto);
 bSkip.addEventListener('click', () => { setSkip(!skipOn); if (skipOn && clickResolve) advance(); });
 bSave.addEventListener('click', () => { if (!ovOpen && mode !== 'btn') menuAction('save'); });

@@ -92,3 +92,16 @@ body.wide #stage,body.stretch #stage{background:#000}
 #txt.choosing::-webkit-scrollbar-thumb{background:#3b3d4a;border-radius:3px}
 #stage{box-shadow:0 0 0 1px rgba(255,255,255,.04)}
 .cur{color:#e0a878}
+
+/* in-game backlog: overlays the game screen directly, like the original engine's
+   scroll-up history, instead of a separate dialog. */
+#backlog{position:absolute;inset:0;background:rgba(6,6,10,.93);display:none;z-index:6;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;padding:28px 24px;box-sizing:border-box;cursor:pointer}
+#backlog.open{display:block}
+#backlogList{max-width:900px;margin:0 auto;font-family:KT,'Sazanami Gothic','Noto Sans JP',sans-serif;
+  font-size:22px;line-height:1.6;color:#eee;cursor:auto}
+#backlogList .logp{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.09);white-space:pre-wrap;overflow-wrap:anywhere}
+#backlogList .logp:last-child{border-bottom:none}
+#backlog::-webkit-scrollbar{width:8px}
+#backlog::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:4px}
+#backlogHint{position:sticky;top:0;text-align:center;font-size:13px;color:#9aa;opacity:.75;padding-bottom:10px;pointer-events:none}
